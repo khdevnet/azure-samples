@@ -1,6 +1,9 @@
 {
   "version": "2.0",
   "logging": {
+    "Log4NetFuncProvider": {
+      "logLevel": "Information"
+    },
     "applicationInsights": {
       "samplingExcludedTypes": "Request",
       "samplingSettings": {
