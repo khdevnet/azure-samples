@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
@@ -12,6 +12,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Castle.Windsor" Version="5.0.1" />
     <PackageReference Include="MicroKnights.Log4NetAdoNetAppender" Version="2.0.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.10" />

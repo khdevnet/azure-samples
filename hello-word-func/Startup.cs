@@ -1,5 +1,4 @@
-﻿using HelloWordFunc.Loggers;
-using HelloWordFunc.Services;
+﻿using HelloWordFunc.Services;
 using log4net;
 using MicroKnights.Logging;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -22,13 +21,14 @@ namespace HelloWordFunc
         public override void Configure(IFunctionsHostBuilder builder)
         {
             builder.Services.AddSingleton<IStringUppercaseService, StringUppercaseService>();
-            builder.Services.AddSingleton<ILoggerProvider>((s) =>
+
+            builder.Services.AddLogging(logBuilder =>
             {
-                var configuration = s.GetService<IConfiguration>();
                 var binDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var configFilePath = Path.Combine(binDirectory, "..", "log4net.config");
-
-                return new Log4NetFuncProvider(Assembly.GetEntryAssembly(), configFilePath);
+                logBuilder
+                .AddFilter("HelloWordFunc", LogLevel.Debug)
+                .AddLog4Net(configFilePath);
             });
         }
     }
