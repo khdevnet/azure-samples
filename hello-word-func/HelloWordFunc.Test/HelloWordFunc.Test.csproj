@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\hello-word-func\HelloWordFunc.csproj" />
+    <ProjectReference Include="..\HelloWordFunc\HelloWordFunc.csproj" />
   </ItemGroup>
 
 </Project>
