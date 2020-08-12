@@ -8,8 +8,6 @@
 * [azure-functions-tests-v3](https://docs.microsoft.com/en-us/azure/azure-functions/functions-test-a-function)
 
 
-
-
 # Log4net database logging-providers
 Create database Logs
 ```sql
