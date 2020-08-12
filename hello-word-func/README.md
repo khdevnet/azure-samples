@@ -1,9 +1,4 @@
-
-# General info
-* [functions-overview](https://docs.microsoft.com/en-us/azure/azure-functions/functions-overview)
-* [durable-functions-overview](https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=csharp)
-* [functions-consumption-costs](https://docs.microsoft.com/en-us/azure/azure-functions/functions-consumption-costs)
-* [functions-dotnet-dependency-injection](https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-dependency-injection)
+# Logging
 * [third-party-logging-providers](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1#third-party-logging-providers)
 * [log4net-with-aspnetcore-for-logging](https://dotnetthoughts.net/how-to-use-log4net-with-aspnetcore-for-logging/)
 * [Log4NetAdoNetAppender](https://github.com/microknights/Log4NetAdoNetAppender)
