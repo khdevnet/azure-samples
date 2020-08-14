@@ -14,6 +14,7 @@ namespace AsyncHttpAzureFunc.Data
     {
         public Guid CorrelationId { get; set; }
         public string CurrentState { get; set; }
+        public DateTime Timestamp { get; set; }
 
         // If using Optimistic concurrency, this property is required
         public byte[] RowVersion { get; set; }

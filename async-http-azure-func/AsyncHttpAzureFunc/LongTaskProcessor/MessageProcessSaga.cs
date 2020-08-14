@@ -21,38 +21,42 @@ namespace AsyncHttpAzureFunc.LongTaskProcessor
         private readonly ILogger<MessageProcessSaga> logger;
         private readonly IHubContext<ChatHub> hubContext;
         private readonly IPublishEndpoint publishEndpoint;
+        private readonly CancelationTokenStore cancelationTokenStore;
 
         public MessageProcessSaga(
             IHttpClientFactory clientFactory,
             ILogger<MessageProcessSaga> logger,
             IHubContext<ChatHub> hubContext,
-            IPublishEndpoint publishEndpoint
+            IPublishEndpoint publishEndpoint,
+            CancelationTokenStore cancelationTokenStore
             )
         {
             this.clientFactory = clientFactory;
             this.logger = logger;
             this.hubContext = hubContext;
             this.publishEndpoint = publishEndpoint;
-
+            this.cancelationTokenStore = cancelationTokenStore;
         }
 
         public async Task Consume(ConsumeContext<MessageSubmit> context)
         {
-            var httpClient = clientFactory.CreateClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:7071/api/Function1");
-
-            var response = await httpClient.SendAsync(request, context.CancellationToken);
-
-            if (response.IsSuccessStatusCode)
+            using (var tokenScope = cancelationTokenStore.CreateScope(context.Message.MessageId))
             {
-                var result = await response.Content.ReadAsStringAsync();
-                logger.LogInformation(result);
-                await hubContext.Clients.All.SendAsync("broadcastMessage", "MessagesConsumer", result);
-                await publishEndpoint.Publish(new MessageProcessed(context.Message.MessageId, DateTime.Now), context.CancellationToken);
-            }
-            else
-            {
-                await publishEndpoint.Publish(new MessageError(context.Message.MessageId, DateTime.Now), context.CancellationToken);
+                var httpClient = clientFactory.CreateClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:7071/api/Function1");
+
+                var response = await httpClient.SendAsync(request, tokenScope.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    logger.LogInformation(result);
+                    await hubContext.Clients.All.SendAsync("broadcastMessage", "MessagesConsumer", result);
+                    await publishEndpoint.Publish(new MessageProcessed(context.Message.MessageId, DateTime.Now), tokenScope.Token);
+                }
+                else
+                {
+                    await publishEndpoint.Publish(new MessageError(context.Message.MessageId, DateTime.Now), tokenScope.Token);
+                }
             }
         }
 
@@ -81,7 +85,8 @@ namespace AsyncHttpAzureFunc.LongTaskProcessor
             IConsumerConfigurator<MessageProcessSaga> consumerConfigurator)
         {
             // configure message retry with millisecond intervals
-            endpointConfigurator.UseMessageRetry(r => r.Intervals(100, 200, 500, 800, 1000));
+            endpointConfigurator.UseMessageRetry(r => r.None());
+            //endpointConfigurator.UseMessageRetry(r => r.Intervals(100, 200, 500, 800, 1000));
 
             // use the outbox to prevent duplicate events from being published
             endpointConfigurator.UseInMemoryOutbox();

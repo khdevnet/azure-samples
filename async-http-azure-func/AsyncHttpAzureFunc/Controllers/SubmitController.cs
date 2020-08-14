@@ -13,10 +13,12 @@ namespace AsyncHttpAzureFunc.Controllers
     public class SubmitController : ControllerBase
     {
         private readonly IPublishEndpoint publishEndpoint;
+        private readonly CancelationTokenStore cancelationTokenStore;
 
-        public SubmitController(IPublishEndpoint publishEndpoint)
+        public SubmitController(IPublishEndpoint publishEndpoint, CancelationTokenStore cancelationTokenStore)
         {
             this.publishEndpoint = publishEndpoint;
+            this.cancelationTokenStore = cancelationTokenStore;
         }
 
         [HttpGet]
@@ -25,6 +27,14 @@ namespace AsyncHttpAzureFunc.Controllers
             var message = new MessageSubmit(Guid.NewGuid(), DateTime.Now);
             await publishEndpoint.Publish(message);
             return new Guid[] { message.MessageId };
+        }
+
+        [HttpGet]
+        [Route("cancel/{id}")]
+        public IEnumerable<Guid> Cancel(Guid id)
+        {
+            cancelationTokenStore.Cancel(id);
+            return new Guid[] { id };
         }
     }
 }

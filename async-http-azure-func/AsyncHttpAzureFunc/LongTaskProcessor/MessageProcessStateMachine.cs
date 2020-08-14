@@ -32,15 +32,18 @@ namespace AsyncHttpAzureFunc.LongTaskProcessor
 
             Initially(
                When(MessageSubmit)
-                //.Activity(x => x.OfType<PublishOrderSubmittedActivity>())
+                .Then(x => x.Instance.Timestamp = x.Data.Timestamp)
+                   //.Activity(x => x.OfType<PublishOrderSubmittedActivity>())
                    .TransitionTo(Submitted));
 
             During(Submitted,
                When(MessageProcessed)
+               .Then(x => x.Instance.Timestamp = x.Data.Timestamp)
                .TransitionTo(Processed));
 
             During(Submitted,
                When(MessageError)
+                .Then(x => x.Instance.Timestamp = x.Data.Timestamp)
                .TransitionTo(Error));
 
         }
