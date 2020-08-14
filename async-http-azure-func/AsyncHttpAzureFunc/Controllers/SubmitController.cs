@@ -24,7 +24,7 @@ namespace AsyncHttpAzureFunc.Controllers
         {
             var message = new MessageSubmit(Guid.NewGuid(), DateTime.Now);
             await publishEndpoint.Publish(message);
-            return new Guid[] { message.CorrelationId };
+            return new Guid[] { message.MessageId };
         }
     }
 }
