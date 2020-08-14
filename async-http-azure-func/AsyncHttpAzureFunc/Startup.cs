@@ -1,11 +1,16 @@
-﻿using AsyncHttpAzureFunc.LongTaskProcessor;
+﻿using AsyncHttpAzureFunc.Data;
+using AsyncHttpAzureFunc.LongTaskProcessor;
 using ChatSample.Hubs;
+using GreenPipes;
 using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Reflection;
 using System.Threading;
 
 namespace ChatSample
@@ -16,17 +21,32 @@ namespace ChatSample
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var connectionString = "Data Source=.;Initial Catalog=AsyncFuncState;Integrated Security=True";
             services.AddControllersWithViews();
             services.AddSignalR();
             services.AddHttpClient();
             services.AddMassTransit(x =>
             {
-                 x.AddSaga<MessageProcessSaga>().InMemoryRepository();
+                 x.AddSagaStateMachine<MessageProcessStateMachine, MessageProcessSagaState>()
+                .EntityFrameworkRepository(r =>
+                 {
+                     r.ConcurrencyMode = ConcurrencyMode.Pessimistic; // or use Optimistic, which requires RowVersion
 
-                x.AddConsumer<MessagesConsumer>(typeof(SubmitOrderConsumerDefinition));
+                     r.AddDbContext<DbContext, MessageStateDbContext>((provider, builder) =>
+                     {
+                         builder.UseSqlServer(connectionString, m =>
+                         {
+                             m.MigrationsAssembly(Assembly.GetExecutingAssembly().GetName().Name);
+                             m.MigrationsHistoryTable($"__{nameof(MessageStateDbContext)}");
+                         });
+                     });
+                 });
+
+                x.AddConsumer<MessageProcessSaga>(typeof(SubmitOrderConsumerDefinition));
 
                 x.UsingInMemory((context, cfg) =>
                 {
+                    cfg.UseMessageRetry(r=>r.None());
                     cfg.TransportConcurrencyLimit = 100;
                     cfg.ConfigureEndpoints(context);
                 });

@@ -20,10 +20,11 @@ namespace AsyncHttpAzureFunc.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<string>> Get()
+        public async Task<IEnumerable<Guid>> Get()
         {
-            await publishEndpoint.Publish(new SubmitMessage(Guid.NewGuid()));
-            return Enumerable.Empty<string>();
+            var message = new MessageSubmit(Guid.NewGuid(), DateTime.Now);
+            await publishEndpoint.Publish(message);
+            return new Guid[] { message.CorrelationId };
         }
     }
 }
