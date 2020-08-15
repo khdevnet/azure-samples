@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Simple Chat</title>
+    <style type="text/css">
+        .container {
+            background-color: #99CCFF;
+            border: thick solid #808080;
+            padding: 20px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <input type="button" id="sendLongRunningMessage" value="Start Request" />
+        <input type="button" id="cancelMessage" value="Cancel Request" />
+        <input type="text" id="messageId" value="" />
+        <ul id="discussion"></ul>
+    </div>
+    <!--Script references. -->
+    <!--Reference the SignalR library. -->
+    <script type="text/javascript" src="lib/signalr.min.js"></script>
+    <!--Add script to update the page and send messages.-->
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get the user name and store it to prepend to messages.
+            var name = 'anton';
+            // Set initial focus to message input box.
+
+            // Start the connection.
+            var connection = new signalR.HubConnectionBuilder()
+                                .withUrl('/chat')
+                                .build();
+
+            // Create a function that the hub can call to broadcast messages.
+            connection.on('broadcastMessage', function (name, message) {
+                // Html encode display name and message.
+                var encodedName = name;
+                var encodedMsg = message;
+                // Add the message to the page.
+                var liElement = document.createElement('li');
+                liElement.innerHTML = '<strong>' + encodedName + '</strong>:&nbsp;&nbsp;' + encodedMsg;
+                document.getElementById('discussion').appendChild(liElement);
+            });
+
+            // Transport fallback functionality is now built into start.
+            connection.start()
+                .then(function () {
+                    console.log('connection started');
+
+                    document.getElementById('sendLongRunningMessage').addEventListener('click', function (event) {
+                        fetch('/api/submit')
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('messageId').value = data[0]
+                                console.log(data);
+                            })
+                    });
+
+                    document.getElementById('cancelMessage').addEventListener('click', function (event) {
+                        fetch('/api/submit/cancel/' + document.getElementById('messageId').value)
+                            .then(response => console.log(response.json()))
+                    });
+
+            })
+            .catch(error => {
+                console.error(error.message);
+            });
+        });
+    </script>
+</body>
+</html>
