@@ -1,4 +1,4 @@
-# Axure function samples
+# Azure function samples
 ## Durable function order process saga
 ![](https://github.com/khdevnet/azure-samples/blob/master/DurableFunctionsSaga/diagram.png)
 * Create order events in Azure Storage Orders Table
