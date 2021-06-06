@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AzureBlobStorageClient
@@ -19,11 +21,11 @@ namespace AzureBlobStorageClient
             var configuration = GetConfiguration();
             sourceConnectionString = configuration.GetValue<string>("storage:source");
             destinationConnectionString = configuration.GetValue<string>("storage:destination");
-            
-            var listNames = new[] { "https://blob-host/container-name/image-1.png" };
 
-            await CopyDocuments(listNames);
-            //  await CopyCarDetails();
+            var listNames = new[] { "https://enzofilesdevturkey.blob.core.windows.net/inspection/a20190902141903384.jpg" };
+         var dd =   Path.GetExtension("https://enzofilesdevturkey.blob.core.windows.net/inspection/a20190902141903384.jpg");
+            await CreateCarDetails();
+        //    await CopyDocuments(listNames);
 
             Console.WriteLine("Hello World!");
         }
@@ -48,15 +50,17 @@ namespace AzureBlobStorageClient
             var dests = await CopyBlobsAsync(sourceBlobs, destContainer);
         }
 
-        private static async Task CopyCarDetails()
+        private static async Task CreateCarDetails()
         {
-            var container = await GetContainer(sourceConnectionString, "cars");
             var destContainer = await GetContainer(destinationConnectionString, "cars");
-            var listNames = new[] { "id1-car-details", "id1-car-details" };
 
-            var sourceBlobs = listNames.Select(name => container.GetBlockBlobReference(name));
+            var destBlob = destContainer.GetBlockBlobReference("id1-car-details");
+            var json = JsonConvert.SerializeObject(new { name = "anton" });
+            var jsonBytes = Encoding.UTF8.GetBytes(json);
+            destBlob.Properties.ContentType = "application/json";
+            await destBlob.UploadFromByteArrayAsync(jsonBytes, 0, jsonBytes.Length);
 
-            var dests = await CopyBlobsAsync(sourceBlobs, destContainer);
+            //var dests = await CopyBlobsAsync(sourceBlobs, destContainer);
         }
 
         private static async Task<CloudBlobContainer> GetContainer(string externalStorageConnection, string containerName)
@@ -92,9 +96,10 @@ namespace AzureBlobStorageClient
 
         private static async Task<ICloudBlob> CopyBlobAsync(CloudBlobContainer destContainer, CloudBlockBlob sourceBlobRef)
         {
-           // var directory = destContainer.GetDirectoryReference("/1my-car/documents");
-            CloudBlockBlob destBlob = destContainer.GetBlockBlobReference("1my-car/documents"+sourceBlobRef.Name);
-
+            // var directory = destContainer.GetDirectoryReference("/1my-car/documents");
+            CloudBlockBlob destBlob = destContainer.GetBlockBlobReference("1my-car/documents" + sourceBlobRef.Name);
+            sourceBlobRef.Properties.ContentType = "image/png";
+            await sourceBlobRef.SetPropertiesAsync();
             await destBlob.StartCopyAsync(sourceBlobRef);
             ICloudBlob destBlobRef = await destContainer.GetBlobReferenceFromServerAsync("1my-car/documents" + sourceBlobRef.Name);
             while (destBlobRef.CopyState.Status == CopyStatus.Pending)
